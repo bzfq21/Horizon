@@ -47,12 +47,7 @@
         "enabled": true,
         "category": "chinese-tech-business"
       },
-      {
-        "name": "a16z",
-        "url": "https://a16z.com/feed/",
-        "enabled": true,
-        "category": "venture-capital"
-      },
+
       {
         "name": "Entrepreneur",
         "url": "https://www.entrepreneur.com/feed",
@@ -65,12 +60,7 @@
         "enabled": true,
         "category": "startups-funding"
       },
-      {
-        "name": "虎嗅",
-        "url": "https://www.huxiu.com/rss/0.xml",
-        "enabled": true,
-        "category": "chinese-tech-business"
-      },
+
 
       {
         "name": "YC Blog",
@@ -90,54 +80,7 @@
           "fetch_limit": 10,
           "min_score": 20
         },
-        {
-          "subreddit": "entrepreneur",
-          "enabled": true,
-          "sort": "hot",
-          "time_filter": "day",
-          "fetch_limit": 10,
-          "min_score": 20
-        },
-        {
-          "subreddit": "technology",
-          "enabled": true,
-          "sort": "hot",
-          "time_filter": "day",
-          "fetch_limit": 10,
-          "min_score": 40
-        },
-        {
-          "subreddit": "fatFIRE",
-          "enabled": true,
-          "sort": "hot",
-          "time_filter": "day",
-          "fetch_limit": 10,
-          "min_score": 15
-        },
-        {
-          "subreddit": "SideProject",
-          "enabled": true,
-          "sort": "hot",
-          "time_filter": "day",
-          "fetch_limit": 10,
-          "min_score": 15
-        },
-        {
-          "subreddit": "SaaS",
-          "enabled": true,
-          "sort": "hot",
-          "time_filter": "day",
-          "fetch_limit": 10,
-          "min_score": 20
-        },
-        {
-          "subreddit": "venturecapital",
-          "enabled": true,
-          "sort": "hot",
-          "time_filter": "day",
-          "fetch_limit": 10,
-          "min_score": 20
-        }
+
       ],
       "users": [],
       "fetch_comments": 10
