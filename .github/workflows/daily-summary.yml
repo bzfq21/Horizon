@@ -47,9 +47,9 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          set -euo pipefail
-          SUMMARY_FILE=$(ls -t data/summaries/*.md 2>/dev/null | head -1)
+          SUMMARY_FILE=$(ls -t data/summaries/*.md 2>/dev/null | head -1 || true)
           [ -z "$SUMMARY_FILE" ] && echo "No summary file, skipping" && exit 0
+          set -euo pipefail
 
           DATE=$(basename "$SUMMARY_FILE" .md)
 
