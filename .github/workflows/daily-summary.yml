@@ -2,8 +2,7 @@ name: Daily Horizon Summary
 
 on:
   schedule:
-    - cron: '0 0 * * *'   # 08:00 Asia/Shanghai — 早报
-    - cron: '0 12 * * *'  # 20:00 Asia/Shanghai — 晚报
+    - cron: '0 0 * * *'   # 08:00 Asia/Shanghai — 每日早报
   workflow_dispatch:       # Allow manual trigger
 
 jobs:
