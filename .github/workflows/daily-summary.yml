@@ -60,7 +60,6 @@ jobs:
             '{
               chat_id: ($cid | (if test("^-?[0-9]+$") then tonumber else . end)),
               text: "🌅 Horizon 日报 - \($date)\n\n\($text[0:3900])",
-              parse_mode: "Markdown",
               disable_web_page_preview: false
             }' > /tmp/tg-payload.json
 
