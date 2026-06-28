@@ -46,6 +46,42 @@
         "url": "https://36kr.com/feed",
         "enabled": true,
         "category": "chinese-tech-business"
+      },
+      {
+        "name": "a16z",
+        "url": "https://a16z.com/feed/",
+        "enabled": true,
+        "category": "venture-capital"
+      },
+      {
+        "name": "Entrepreneur",
+        "url": "https://www.entrepreneur.com/feed",
+        "enabled": true,
+        "category": "entrepreneurship"
+      },
+      {
+        "name": "Crunchbase News",
+        "url": "https://news.crunchbase.com/feed/",
+        "enabled": true,
+        "category": "startups-funding"
+      },
+      {
+        "name": "虎嗅",
+        "url": "https://www.huxiu.com/rss/0.xml",
+        "enabled": true,
+        "category": "chinese-tech-business"
+      },
+      {
+        "name": "The Verge",
+        "url": "https://www.theverge.com/rss/index.xml",
+        "enabled": true,
+        "category": "tech-news"
+      },
+      {
+        "name": "YC Blog",
+        "url": "https://www.ycombinator.com/blog/feed.xml",
+        "enabled": true,
+        "category": "startups"
       }
     ],
     "reddit": {
@@ -74,6 +110,38 @@
           "time_filter": "day",
           "fetch_limit": 10,
           "min_score": 40
+        },
+        {
+          "subreddit": "fatFIRE",
+          "enabled": true,
+          "sort": "hot",
+          "time_filter": "day",
+          "fetch_limit": 10,
+          "min_score": 15
+        },
+        {
+          "subreddit": "SideProject",
+          "enabled": true,
+          "sort": "hot",
+          "time_filter": "day",
+          "fetch_limit": 10,
+          "min_score": 15
+        },
+        {
+          "subreddit": "SaaS",
+          "enabled": true,
+          "sort": "hot",
+          "time_filter": "day",
+          "fetch_limit": 10,
+          "min_score": 20
+        },
+        {
+          "subreddit": "venturecapital",
+          "enabled": true,
+          "sort": "hot",
+          "time_filter": "day",
+          "fetch_limit": 10,
+          "min_score": 20
         }
       ],
       "users": [],
