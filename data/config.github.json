@@ -71,12 +71,7 @@
         "enabled": true,
         "category": "chinese-tech-business"
       },
-      {
-        "name": "The Verge",
-        "url": "https://www.theverge.com/rss/index.xml",
-        "enabled": true,
-        "category": "tech-news"
-      },
+
       {
         "name": "YC Blog",
         "url": "https://www.ycombinator.com/blog/feed.xml",
@@ -153,7 +148,7 @@
     }
   },
   "filtering": {
-    "ai_score_threshold": 8.0,
+    "ai_score_threshold": 6.0,
     "time_window_hours": 24
   },
   "webhook": {
