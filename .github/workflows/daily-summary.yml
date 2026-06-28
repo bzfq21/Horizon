@@ -52,8 +52,10 @@ jobs:
           [ -z "$SUMMARY_FILE" ] && echo "No summary, skipping" && exit 0
 
           # Write Python sender script to /tmp to avoid YAML heredoc indentation issues
+          # Parses markdown: each "## [Title](url)" block → extract title+url+summary (until noise markers)
+          # Sends ONE compact message with all items, no chunking
           printf '%s\n' \
-            'import os, json, glob, urllib.request' \
+            'import os, re, json, glob, urllib.request' \
             '' \
             'token = os.environ["TELEGRAM_BOT_TOKEN"]' \
             'chat_id = os.environ["TELEGRAM_CHAT_ID"]' \
@@ -64,22 +66,67 @@ jobs:
             'with open(files[-1], encoding="utf-8") as f:' \
             '    text = f.read()' \
             '' \
-            'base_title = os.path.splitext(os.path.basename(files[-1]))[0]' \
-            '# Split into chunks of 3900 chars (Telegram limit is 4096)' \
-            'chunks = [text[i:i+3900] for i in range(0, len(text), 3900)]' \
+            'h = re.search(r"^# (.+)", text)' \
+            'header = h.group(1) if h else "Horizon 日报"' \
             '' \
-            'for i, chunk in enumerate(chunks):' \
-            '    if i == 0:' \
-            '        msg = f"🌅 Horizon 日报 - {base_title}\n\n{chunk}"' \
-            '    else:' \
-            '        msg = f"〔续〕\n\n{chunk}"' \
-            '    if not msg.strip(): continue' \
-            '    cid = int(chat_id) if chat_id.isdigit() else chat_id' \
-            '    payload = json.dumps({"chat_id": cid, "text": msg}).encode()' \
-            '    url = f"https://api.telegram.org/bot{token}/sendMessage"' \
-            '    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})' \
-            '    resp = urllib.request.urlopen(req)' \
-            '    print(f"Sent chunk {i+1}/{len(chunks)} ({resp.status})")' \
+            'noise_starts = (' \
+            '    "**背景**", "**Background**",' \
+            '    "**社区讨论**", "**Discussion**",' \
+            '    "**标签**", "**Tags**",' \
+            '    "**参考链接**", "**References**",' \
+            '    "<details>",' \
+            ')' \
+            '' \
+            'items = []' \
+            'for sec in text.split("\n---\n"):' \
+            '    m = re.search(r"^## \[(.+?)\]\((.+?)\)", sec, re.MULTILINE)' \
+            '    if not m: continue' \
+            '    title, url = m.group(1), m.group(2)' \
+            '    body_lines = []' \
+            '    capture = False' \
+            '    for line in sec.split("\n"):' \
+            '        if line.startswith("## ["):' \
+            '            capture = True' \
+            '            continue' \
+            '        if capture:' \
+            '            s = line.strip()' \
+            '            if any(s.startswith(n) for n in noise_starts): break' \
+            '            if s == "---": break' \
+            '            body_lines.append(line)' \
+            '    body = re.sub(r"\n{3,}", "\n\n", "".join(body_lines).strip())' \
+            '    if len(body) > 200:' \
+            '        cut = body[:200]; idx = max(cut.rfind(c) for c in "。！？.!?\n")' \
+            '        if idx > 80: cut = cut[:idx+1]' \
+            '        body = cut.rstrip() + "…"' \
+            '    items.append((title, url, body))' \
+            '' \
+            'msg_parts = [f"📡 {header}"]' \
+            'for i, (title, url, body) in enumerate(items, 1):' \
+            '    msg_parts.append(f"\n\n{i}. {title}")' \
+            '    msg_parts.append(f"\n   {url}")' \
+            '    if body:' \
+            '        msg_parts.append(f"\n   {body}")' \
+            'msg = "".join(msg_parts)' \
+            '' \
+            'while len(msg) > 4000 and len(items) > 1:' \
+            '    items.pop()' \
+            '    msg_parts = [f"📡 {header}"]' \
+            '    for i, (title, url, body) in enumerate(items, 1):' \
+            '        msg_parts.append(f"\n\n{i}. {title}")' \
+            '        msg_parts.append(f"\n   {url}")' \
+            '        if body:' \
+            '            msg_parts.append(f"\n   {body}")' \
+            '    msg = "".join(msg_parts)' \
+            '' \
+            'if not items:' \
+            '    msg = f"📡 {header}\n\n今日暂无重要动态。"' \
+            '' \
+            'cid = int(chat_id) if chat_id.isdigit() else chat_id' \
+            'payload = json.dumps({"chat_id": cid, "text": msg}).encode()' \
+            'api_url = "https://api.telegram.org/bot" + token + "/sendMessage"' \
+            'req = urllib.request.Request(api_url, data=payload, headers={"Content-Type": "application/json"})' \
+            'resp = urllib.request.urlopen(req)' \
+            'print(f"Sent summary ({resp.status})")' \
             > /tmp/tg_sender.py
 
           python3 /tmp/tg_sender.py
