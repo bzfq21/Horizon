@@ -47,26 +47,42 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          SUMMARY_FILE=$(ls -t data/summaries/*.md 2>/dev/null | head -1 || true)
-          [ -z "$SUMMARY_FILE" ] && echo "No summary file, skipping" && exit 0
           set -euo pipefail
+          SUMMARY_FILE=$(ls -t data/summaries/*.md 2>/dev/null | head -1 || true)
+          [ -z "$SUMMARY_FILE" ] && echo "No summary, skipping" && exit 0
 
-          DATE=$(basename "$SUMMARY_FILE" .md)
+          # Write Python sender script to /tmp to avoid YAML heredoc indentation issues
+          printf '%s\n' \
+            'import os, json, glob, urllib.request' \
+            '' \
+            'token = os.environ["TELEGRAM_BOT_TOKEN"]' \
+            'chat_id = os.environ["TELEGRAM_CHAT_ID"]' \
+            '' \
+            'files = sorted(glob.glob("data/summaries/*.md"))' \
+            'if not files: exit(0)' \
+            '' \
+            'with open(files[-1], encoding="utf-8") as f:' \
+            '    text = f.read()' \
+            '' \
+            'base_title = os.path.splitext(os.path.basename(files[-1]))[0]' \
+            '# Split into chunks of 3900 chars (Telegram limit is 4096)' \
+            'chunks = [text[i:i+3900] for i in range(0, len(text), 3900)]' \
+            '' \
+            'for i, chunk in enumerate(chunks):' \
+            '    if i == 0:' \
+            '        msg = f"🌅 Horizon 日报 - {base_title}\n\n{chunk}"' \
+            '    else:' \
+            '        msg = f"〔续〕\n\n{chunk}"' \
+            '    if not msg.strip(): continue' \
+            '    cid = int(chat_id) if chat_id.isdigit() else chat_id' \
+            '    payload = json.dumps({"chat_id": cid, "text": msg}).encode()' \
+            '    url = f"https://api.telegram.org/bot{token}/sendMessage"' \
+            '    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})' \
+            '    resp = urllib.request.urlopen(req)' \
+            '    print(f"Sent chunk {i+1}/{len(chunks)} ({resp.status})")' \
+            > /tmp/tg_sender.py
 
-          jq -n \
-            --arg cid "$TELEGRAM_CHAT_ID" \
-            --arg date "$DATE" \
-            --rawfile text "$SUMMARY_FILE" \
-            '{
-              chat_id: ($cid | (if test("^-?[0-9]+$") then tonumber else . end)),
-              text: "🌅 Horizon 日报 - \($date)\n\n\($text[0:3900])",
-              disable_web_page_preview: false
-            }' > /tmp/tg-payload.json
-
-          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -H "Content-Type: application/json" \
-            -d @/tmp/tg-payload.json \
-            -w "\nTelegram: %{http_code}"
+          python3 /tmp/tg_sender.py
 
       - name: Set current date as environment variable
         run: echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
