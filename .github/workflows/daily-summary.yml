@@ -41,6 +41,34 @@ jobs:
           HORIZON_WEBHOOK_URL: ${{ secrets.HORIZON_WEBHOOK_URL }}
         run: uv run horizon --hours 24
 
+      - name: Send to Telegram
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          set -euo pipefail
+          SUMMARY_FILE=$(ls -t data/summaries/*.md 2>/dev/null | head -1)
+          [ -z "$SUMMARY_FILE" ] && echo "No summary file, skipping" && exit 0
+
+          DATE=$(basename "$SUMMARY_FILE" .md)
+
+          jq -n \
+            --arg cid "$TELEGRAM_CHAT_ID" \
+            --arg date "$DATE" \
+            --rawfile text "$SUMMARY_FILE" \
+            '{
+              chat_id: ($cid | (if test("^-?[0-9]+$") then tonumber else . end)),
+              text: "🌅 Horizon 日报 - \($date)\n\n\($text[0:3900])",
+              parse_mode: "Markdown",
+              disable_web_page_preview: false
+            }' > /tmp/tg-payload.json
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d @/tmp/tg-payload.json \
+            -w "\nTelegram: %{http_code}"
+
       - name: Set current date as environment variable
         run: echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
